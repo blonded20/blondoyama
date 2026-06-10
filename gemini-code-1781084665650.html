@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Birthday! ❤️</title>
+    <style>
+        :root {
+            --primary-color: #ff9a9e;
+            --secondary-color: #fecfef;
+            --accent-color: #ff6b6b;
+            --text-color: #333;
+            --bg-color: #fff9fa;
+        }
+        
+        body {
+            font-family: 'Georgia', serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            overflow-x: hidden;
+        }
+
+        /* 1. Passcode Screen Overlay */
+        #passcode-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: linear-gradient(135deg, var(--secondary-color) 0%, var(--primary-color) 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease, visibility 0.5s;
+        }
+
+        .lock-box {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            text-align: center;
+            max-width: 320px;
+            width: 100%;
+        }
+
+        .lock-box h2 {
+            color: var(--accent-color);
+            margin-bottom: 10px;
+        }
+
+        .lock-box p {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .lock-box input {
+            width: 80%;
+            padding: 12px;
+            font-size: 1.5rem;
+            letter-spacing: 5px;
+            text-align: center;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            outline: none;
+        }
+
+        .lock-box input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .lock-box button {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1rem;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .lock-box button:hover {
+            background-color: #ff4747;
+        }
+
+        .error-msg {
+            color: red;
+            font-size: 0.85rem;
+            margin-top: 10px;
+            display: none;
+        }
+
+        /* Main Content */
+        #main-content {
+            display: none;
+        }
+
+        /* Hero Section */
+        .hero {
+            height: 45vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, var(--secondary-color) 0%, var(--primary-color) 100%);
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* Wholesome Paragraph Letters */
+        .letter-section {
+            max-width: 750px;
+            margin: 50px auto;
+            padding: 40px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+            border-left: 5px solid var(--primary-color);
+        }
+
+        .letter-section p {
+            font-size: 1.15rem;
+            line-height: 1.9;
+            color: #444;
+            margin-bottom: 20px;
+            white-space: pre-line; /* Keeps your formatting clean */
+        }
+
+        .letter-section h3 {
+            color: var(--accent-color);
+            font-size: 1.6rem;
+            margin-top: 0;
+            margin-bottom: 25px;
+        }
+
+        /* 2. Quiz Section */
+        .quiz-section {
+            max-width: 700px;
+            margin: 60px auto;
+            padding: 30px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+
+        .quiz-section h2 {
+            color: var(--accent-color);
+            margin-bottom: 5px;
+        }
+
+        .quiz-subtitle {
+            color: #777;
+            font-style: italic;
+            margin-bottom: 15px;
+        }
+
+        .quiz-progress {
+            font-size: 1rem;
+            font-weight: bold;
+            color: var(--accent-color);
+            margin-bottom: 25px;
+        }
+
+        .question-box {
+            display: none; 
+        }
+
+        .question-box.active {
+            display: block;
+        }
+
+        .question-text {
+            font-size: 1.4rem;
+            margin-bottom: 25px;
+            font-weight: bold;
+            line-height: 1.4;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .options-grid.two-choices {
+            grid-template-columns: 1fr 1fr;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 500px) {
+            .options-grid, .options-grid.two-choices { grid-template-columns: 1fr; }
+        }
+
+        .option-btn {
+            background-color: #f8f8f8;
+            border: 2px solid #eee;
+            padding: 15px;
+            font-size: 1rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .option-btn:hover {
+            background-color: var(--secondary-color);
+            border-color: var(--primary-color);
+        }
+
+        /* Dynamic State Colors */
+        .option-btn.correct {
+            background-color: #d4edda !important;
+            border-color: #c3e6cb !important;
+            color: #155724 !important;
+            font-weight: bold;
+        }
+
+        .option-btn.wrong {
+            background-color: #f8d7da !important;
+            border-color: #f5c6cb !important;
+            color: #721c24 !important;
+        }
+
+        /* Hidden Until Quiz Completes */
+        #final-stage {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 1. PASSCODE GATE SCREEN -->
+    <div id="passcode-screen">
+        <div class="lock-box">
+            <h2>Halt! Who goes there? 🛑</h2>
+            <p>Enter the 4-digit secret code to unlock your birthday surprise.</p>
+            <input type="password" id="code-input" placeholder="••••" maxlength="4">
+            <br>
+            <button onclick="checkCode()">Unlock Code</button>
+            <div class="error-msg" id="error-message">Wrong code! Clue: Think of our special date. 😉</div>
+        </div>
+    </div>
+
+    <!-- MAIN WEBSITE CONTENT -->
+    <div id="main-content">
+        
+        <!-- Hero Welcome -->
+        <section class="hero">
+            <h1>Happy Birthday, My Whole World! 🎉</h1>
+            <p>A little space on the internet made entirely for you.</p>
+        </section>
+
+        <!-- FIRST PARAGRAPH (CUSTOM) -->
+        <section class="letter-section">
+            <h3>HELLO BIRTHDAY GIRL !!!</h3>
+            <p>Today is Iman Day , Happy Iman Day , It may seem like a special day for you but you need to understand it's a more special day for me today . Just think about how lucky I am to have you as my best friend and my long life partner and your birthday would be the reason all this has ever even come to me , duh.</p>
+            <p>Imagine though what are the chances of us ever meeting when you were born in Japan and me here in Islamabad , NOT JUST THAT us both landing in the same awful college at the same time , plus you being in Pakistan too. Like bruhhhhhhhh , ooper se I chose Benchmark very oddly too I would have never left roots if it wasn't for my emotional sensitive behaviour. Odd all of that out and think even if we were in the same college , it still somehow seemed near impossible to have met or interacted giving the nature of the college , and there were 100s of other girls and boys . Yet it still somehow worked out between those 2 years of college we respected and got to know each other still, STILL no correlation on how we'd end up like this , still so many possibilities how our future would hold each other . But I am so glad we are what we are , we took our time , we communicated , we had fun the whole time.</p>
+            <p>I make you laugh , I make you sad , it's the best ever thing I could get in this world and the hereafter , I would never experience the joy and affection I feel with you, and its so interesting we are only over the screen for 95% of our relationship and yet its so strong,</p>
+        </section>
+
+        <!-- 2. THE 22-QUESTION INTERACTIVE QUIZ -->
+        <section class="quiz-section" id="quiz-anchor">
+            <h2>The Ultimate Relationship Quiz</h2>
+            <p class="quiz-subtitle">Answer these questions to unlock my final letter to you!</p>
+            <div class="quiz-progress" id="progress-text">Question 1 of 22</div>
+            
+            <div id="quiz-container">
+                <!-- Question 1 -->
+                <div class="question-box active" data-q="1">
+                    <div class="question-text">If I had to delete one app forever, which would hurt Musa the most?</div>
+                    <div class="options-grid">
+                        <button class="option-btn" onclick="handleAnswer(this, false)">A) Instagram</button>
+                        <button class="option-btn" onclick="handleAnswer(this, false)">B) TikTok</button>
+                        <button class="option-btn" data-correct="true" onclick="handleAnswer(this, true)">C) YouTube</button>
+                        <button class="option-btn" onclick="handleAnswer(this, false)">D) WhatsApp</button>
+                    </div>
+                </div>
+
+                <!-- Question 2 -->
+                <div class="question-box" data-q="2">
+                    <div class="question-text">What’s the first movie we watched together?</div>
+                    <div class="options-grid">
+                        <button class="option-btn" onclick="handleAnswer(this, false)">A) Eternal sunshine of a spotless mind</button>
+                        <button class="option-btn" data-correct="true" onclick="handleAnswer(this, true)">B) Goodwill Hunting</button>
+                        <button class="option-btn" onclick="handleAnswer(this, false)">C) Before Sunrise</button>
+                        <button class="option-btn" onclick="handleAnswer(this, false)">D) Lost in Translation</button>
+                    </div>
+                </div>
+
+                <!-- Question 3 -->
+                <div class="question-box" data-q="3">
+                    <div class="question-text">When did we start our proper relationship?</div>
+                    <div class="options-grid">
+                        <button class="option-btn" onclick="handleAnswer(this, false)">A) 1 Jan 2025</button>
+                        <button class="option-btn" data-correct="true" onclick="handleAnswer(this, true)">B) 1 Jan 2024</button>
+                        <button class="option-btn" onclick="handleAnswer(this, false)">C) 1 June 2023</button>
+                        <button class="option-btn" onclick="handleAnswer(this, false)">D) 1 June 2024</button>
+                    </div>
+                </div>
+
+                <!-- Question 4 -->
+                <div class="question-box" data-q="4">
+                    <div class="question-text">Who did you wish to marry before I came?</div>
+                    <div class="options-grid">
+                        <button class="option-btn" onclick="handleAnswer(this, false)">A) an arab millionaire</button>
+                        <button class="option-btn" data-correct="true" onclick="handleAnswer(this, true)">B) a black guy</button>
+                        <button class="option-btn" onclick="handleAnswer(this, false)">C) a japanese guy</button>
+                        <button class="option-btn" onclick="handleAnswer(this, false)">D) a blasian</button>
+                    </div>
+                </div>
+
+                <!-- Question 5 -->
+                <div class="question-box" data-q="5">
+                    <div class="question-text">Which celebrity would I most likely be friends with?</div>
+                    <div class="options-grid">
+                        <button class="option-btn" data-correct="true" onclick="handleAnswer(this, true)">A) Kanye West</button>
+                        <button class="option-btn" onclick="handleAnswer(this, false)">B) Michael Jackson</button>
+                        <button class="option-btn" onclick="handleAnswer(this, false)">C) The Weeknd</button>
+                        <button class="option-btn" onclick="handleAnswer(this, false)">D) David Bowie</button>
+                    </div>
+                </div>
+
+                <!-- Question 6 -->
+                <div class="question-box" data-q="6">
+                    <div class="question-text">What’s most likely to start an argument with me?</div>
+                    <div class="options-grid">
+                        <button class="option-btn" onclick="handleAnswer(this, false)">A) Being ignored</button>
+                        <button class="option-btn" onclick="handleAnswer(this, false)">B) Being lied to</button>
+                        <button class="option-btn" onclick="handleAnswer(this, false)">C) Being late</button>
+                        <button class="option-btn" data-correct="true" onclick="handleAnswer(this, true)">D) Being Annoying</button>
+                    </div>
+                </div>
+
+                <!-- Question 7 -->
+                <div class="question-box" data-q="7">
+                    <div class="question-text">What would Musa spend an entire day doing without getting bored?</div>
+                    <div class="options-grid">
+                        <button class="option-btn" data-correct="true" onclick="handleAnswer(this, true)">A) Talking to Iman Oyama</button>
+                        <button class="option-btn" onclick="handleAnswer(this, false)">B) Organizing spreadsheets</button>
+                        <button class="option-btn" onclick="handleAnswer(this, false)">C) Sitting in absolute silence</button>
+                        <button class="option-btn" onclick="handleAnswer(this, false)">D) Going to bed at 7 PM</button>
+                    </div>
+                </div>
+
+                <!-- Question 8 -->
+                <div class="question-box" data-q="8">
+                    <div class="question-text">What’s Musa’s favourite food?</div>
+                    <div class="options-grid">
+                        <button class="option-btn" onclick="handleAnswer(this, false)">A) Nihari</button>
+                        <button class="option-btn" onclick="handleAnswer(this, false)">B) Alfredo</button>
+                        <button class="option-btn" onclick="handleAnswer(this, false)">C) Chinese Rice</button>
+                        <button class="option-btn" data-correct="true" onclick="handleAnswer(this, true)">D) Singaporean Rice</button>
+                    </div>
+                </div>
+
+                <!-- Question 9 -->
+                <div class="question-box" data-q="9">
+                    <div class="question-text">How did we start talking?</div>
+                    <div class="options-grid">
+                        <button class="option-btn" data-correct="true" onclick="handleAnswer(this, true)">A) Hamza’s birthday</button>
+                        <button class="option-btn" data-correct="true" onclick="handleAnswer(this, true)">B) Saad</button>
+                        <button class="option-btn" data-correct="true" onclick="handleAnswer(this, true)">C) Benchmark</button>
+                        <button class="option-btn" data-correct="true" onclick="handleAnswer(this, true)">D) Screentime</button>
+                    </div>
+                </div>
+
+                <!-- Question 10 -->
+                <div class="question-box" data-q="10">
+                    <div class="question-text">What’s your favourite time of the day with me?</div>
+                    <div class="options-grid">
+                        <button class="option-btn" data-correct="true" onclick="handleAnswer(this, true)">A) FT after Uni</button>
+                        <button class="option-btn" data-correct="true" onclick="handleAnswer(this, true)">B) Audio after FT</button>
+                        <button class="option-btn" data-correct="true" onclick="handleAnswer(this, true)">C) Morning Cuddle</button>
+                        <button class="option-btn" data-correct="true" onclick="handleAnswer(this, true)">D) ScreenSharing</button>
+                    </div>
+                </div>
+
+                <!-- Question 11 -->
+                <div class="question-box" data-q="11">
+                    <div class="question-text">What’s Musa’s favourite body part of yours?</div>
+                    <div class="options-grid">
+                        <button class="option-btn" onclick="handleAnswer(this, false)">A) Waist</button>
+                        <button class="option-btn" data-correct="true" onclick="handleAnswer(this, true)">B) Nose</button>
+                        <button class="option-btn" onclick="handleAnswer(this, false)">C) Back</button>
+                        <button class="option-btn" onclick="handleAnswer(this, false)">D) Chest</button>
+                    </div>
+                </div>
+
+                <!-- Question 12 -->
+                <div class="question-box" data-q="12">
+                    <div class="question-text">What’s Musa’s Favourite colour throughout the years?</div>
+                    <div class="options-grid">
+                        <button class="option-btn" onclick="handleAnswer(this, false)">A) Green,Red,Brown,Purple</button>
+                        <button class="option-btn" onclick="handleAnswer(this, false)">B) Red,Brown,Green,Purple</button>
+                        <button class="option-btn" data-correct="true" onclick="handleAnswer(this, true)">C) Red,Green,Brown,Purple</button>
+                        <button class="option-btn" onclick="handleAnswer(this, false)">D) Purple,Green,Red,Brown</button>
+                    </div>
+                </div>
+
+                <!-- Question 13 -->
+                <div class="question-box" data-q="13">
+                    <div class="question-text">What’s the Last movie we watched together?</div>
+                    <div class="options-grid">
+                        <button class="option-btn" onclick="handleAnswer(this, false)">A) Punch Drunk Love</button>
+                        <button class="option-btn" onclick="handleAnswer(this, false)">B) Atomement</button>
+                        <button class="option-btn" data-correct="true" onclick="handleAnswer(this, true)">C) The Age of Innocence</button>
+                        <button class="option-btn" onclick="handleAnswer(this, false)">D) No other Choice</button>
+                    </div>
+                </div>
+
+                <!-- Question 14 -->
+                <div class="question-box" data-q="14">
+                    <div class="question-text">When did we facetime for the first time?</div>
+                    <div class="options-grid">
+                        <button class="option-btn" onclick="handleAnswer(this, false)">A) March</button>
+                        <button class="option-btn" data-correct="true" onclick="handleAnswer(this, true)">B) April</button>
+                        <button class="option-btn" onclick="handleAnswer(this, false)">C) February</button>
+                        <button class="option-btn" onclick="handleAnswer(this, false)">D) May</button>
+                    </div>
+                </div>
+
+                <!-- Question 15 -->
+                <div class="question-box" data-q="15">
+                    <div class="question-text">How many birthdays have I been a part of with you?</div>
+                    <div class="options-grid two-choices">
+                        <button class="option-btn" onclick="handleAnswer(this, false)">A) 4</button>
+                        <button class="option-btn" data-correct="true" onclick="handleAnswer(this, true)">B) 5</button>
+                    </div>
+                </div>
+
+                <!-- Question 16 -->
+                <div class="question-box" data-q="16">
+                    <div class="question-text">When did we screenshare for the first time?</div>
+                    <div class="options-grid">
+                        <button class="option-btn" onclick="handleAnswer(this, false)">A) May</button>
+                        <button class="option-btn" onclick="handleAnswer(this, false)">B) April</button>
+                        <button class="option-btn" data-correct="true" onclick="handleAnswer(this, true)">C) June</button>
+                        <button class="option-btn" onclick="handleAnswer(this, false)">D) August</button>
+                    </div>
+                </div>
+
+                <!-- Question 17 -->
+                <div class="question-box" data-q="17">
+                    <div class="question-text">How many days did we spend together in September?</div>
+                    <div class="options-grid">
+                        <button class="option-btn" onclick="handleAnswer(this, false)">A) 6</button>
+                        <button class="option-btn" onclick="handleAnswer(this, false)">B) 8</button>
+                        <button class="option-btn" onclick="handleAnswer(this, false)">C) 5</button>
+                        <button class="option-btn" data-correct="true" onclick="handleAnswer(this, true)">D) 7</button>
+                    </div>
+                </div>
+
+                <!-- Question 18 -->
+                <div class="question-box" data-q="18">
+                    <div class="question-text">How many hours did we spend together in September?</div>
+                    <div class="options-grid">
+                        <button class="option-btn" onclick="handleAnswer(this, false)">A) 24hrs</button>
+                        <button class="option-btn" onclick="handleAnswer(this, false)">B) 27hrs</button>
+                        <button class="option-btn" data-correct="true" onclick="handleAnswer(this, true)">C) 31 hrs</button>
+                        <button class="option-btn" onclick="handleAnswer(this, false)">D) 34 hrs</button>
+                    </div>
+                </div>
+
+                <!-- Question 19 -->
+                <div class="question-box" data-q="19">
+                    <div class="question-text">Which day did we spend the most time?</div>
+                    <div class="options-grid">
+                        <button class="option-btn" onclick="handleAnswer(this, false)">A) Sunday</button>
+                        <button class="option-btn" onclick="handleAnswer(this, false)">B) Wednesday</button>
+                        <button class="option-btn" data-correct="true" onclick="handleAnswer(this, true)">C) Thursday</button>
+                        <button class="option-btn" onclick="handleAnswer(this, false)">D) Last day</button>
+                    </div>
+                </div>
+
+                <!-- Question 20 -->
+                <div class="question-box" data-q="20">
+                    <div class="question-text">How many wallpapers does Musa have of you?</div>
+                    <div class="options-grid">
+                        <button class="option-btn" onclick="handleAnswer(this, false)">A) 1</button>
+                        <button class="option-btn" data-correct="true" onclick="handleAnswer(this, true)">B) 2</button>
+                        <button class="option-btn" onclick="handleAnswer(this, false)">C) 3</button>
+                        <button class="option-btn" onclick="handleAnswer(this, false)">D) 6</button>
+                    </div>
+                </div>
+
+                <!-- Question 21 -->
+                <div class="question-box" data-q="21">
+                    <div class="question-text">How many movies have we watched together?</div>
+                    <div class="options-grid">
+                        <button class="option-btn" onclick="handleAnswer(this, false)">A) 11</button>
+                        <button class="option-btn" onclick="handleAnswer(this, false)">B) 12</button>
+                        <button class="option-btn" onclick="handleAnswer(this, false)">C) 13</button>
+                        <button class="option-btn" data-correct="true" onclick="handleAnswer(this, true)">D) 14</button>
+                    </div>
+                </div>
+
+                <!-- Question 22 -->
+                <div class="question-box" data-q="22">
+                    <div class="question-text">What’s our height difference?</div>
+                    <div class="options-grid">
+                        <button class="option-btn" onclick="handleAnswer(this, false)">A) 13 cm</button>
+                        <button class="option-btn" data-correct="true" onclick="handleAnswer(this, true)">B) 23cm</button>
+                        <button class="option-btn" onclick="handleAnswer(this, false)">C) 33cm</button>
+                        <button class="option-btn" onclick="handleAnswer(this, false)">D) 43cm</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="quiz-result" style="display:none;"></div>
+        </section>
+
+        <!-- LAST PARAGRAPH (CUSTOM) -->
+        <section class="letter-section" id="final-stage">
+            <h3>My Forever & Always,</h3>
+            <p style="font-style: italic; font-weight: bold; color: var(--accent-color);">I carry your heart with me in my own heart 
+            And i will carry it forever</p>
+            <p>Yk i don’t want to give the usual i love you’s because you ask me everyday already. However your birthday isn’t just a a celebration day for me , it’s a day im thankful for as it made life so much more prettier then what it already is. And tbh it wasn’t very pretty to me before iman.</p>
+            <p style="text-align: right; font-weight: bold; margin-top: 30px;">
+                With all my love, <br>
+                Musa ❤️
+            </p>
+        </section>
+
+    </div>
+
+    <!-- CODE LOGIC -->
+    <script>
+        // 1. Check Passcode
+        function checkCode() {
+            const input = document.getElementById('code-input').value;
+            const errorMsg = document.getElementById('error-message');
+            const lockScreen = document.getElementById('passcode-screen');
+            const mainContent = document.getElementById('main-content');
+
+            if (input === "1106") {
+                lockScreen.style.opacity = "0";
+                setTimeout(() => {
+                    lockScreen.style.display = "none";
+                    mainContent.style.display = "block";
+                }, 500);
+            } else {
+                errorMsg.style.display = "block";
+                document.getElementById('code-input').value = "";
+            }
+        }
+
+        document.getElementById('code-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') { checkCode(); }
+        });
+
+        // 2. Quiz Handling
+        let currentQuestion = 1;
+        const totalQuestions = 22;
+
+        function handleAnswer(button, isCorrect) {
+            const currentBox = document.querySelector(`.question-box[data-q="${currentQuestion}"]`);
+            const buttons = currentBox.querySelectorAll('.option-btn');
+            
+            buttons.forEach(btn => btn.disabled = true);
+
+            if (isCorrect) {
+                button.classList.add('correct');
+            } else {
+                button.classList.add('wrong');
+                buttons.forEach(btn => {
+                    if (btn.getAttribute('data-correct') === 'true') {
+                        btn.classList.add('correct');
+                    }
+                });
+            }
+
+            setTimeout(() => {
+                currentBox.classList.remove('active');
+                currentQuestion++;
+
+                if (currentQuestion <= totalQuestions) {
+                    document.getElementById('progress-text').innerText = `Question ${currentQuestion} of ${totalQuestions}`;
+                    const nextBox = document.querySelector(`.question-box[data-q="${currentQuestion}"]`);
+                    nextBox.classList.add('active');
+                } else {
+                    document.getElementById('quiz-anchor').style.display = 'none';
+                    
+                    const finalLetter = document.getElementById('final-stage');
+                    finalLetter.style.display = 'block';
+                    finalLetter.scrollIntoView({ behavior: 'smooth' });
+                }
+            }, 1500);
+        }
+    </script>
+</body>
+</html>
